@@ -2,6 +2,7 @@ package com.example.HRMS.demo.attendance.controller;
 
 import com.example.HRMS.demo.attendance.dto.AttendanceResponse;
 import com.example.HRMS.demo.attendance.dto.ClockInRequest;
+import com.example.HRMS.demo.attendance.dto.ClockOutRequest;
 import com.example.HRMS.demo.attendance.service.AttendanceService;
 import com.example.HRMS.demo.cache.ActiveWorkerCache;
 import jakarta.validation.Valid;
@@ -25,6 +26,14 @@ public class AttendanceController {
     ) {
 
         return attendanceService.clockIn(request);
+    }
+
+    @PostMapping("/clock-out")
+    public AttendanceResponse clockOut(
+            @Valid @RequestBody ClockOutRequest request
+    ) {
+
+        return attendanceService.clockOut(request);
     }
 
     @GetMapping("/active")
