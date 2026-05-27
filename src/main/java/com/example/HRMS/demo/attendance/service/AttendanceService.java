@@ -1,5 +1,6 @@
 package com.example.HRMS.demo.attendance.service;
 
+import com.example.HRMS.demo.attendance.dto.AttendanceLogResponse;
 import com.example.HRMS.demo.attendance.dto.AttendanceResponse;
 import com.example.HRMS.demo.attendance.dto.ClockInRequest;
 import com.example.HRMS.demo.attendance.dto.ClockOutRequest;
@@ -10,6 +11,7 @@ import com.example.HRMS.demo.cache.ActiveWorkerCacheService;
 import com.example.HRMS.demo.common.exception.ConflictException;
 import com.example.HRMS.demo.common.exception.ResourceNotFoundException;
 import com.example.HRMS.demo.common.exception.ValidationException;
+import com.example.HRMS.demo.common.response.PagedResponse;
 import com.example.HRMS.demo.overtime.entity.OvertimeEntry;
 import com.example.HRMS.demo.overtime.repository.OvertimeRepository;
 import com.example.HRMS.demo.site.entity.Site;
@@ -18,6 +20,8 @@ import com.example.HRMS.demo.worker.entity.Worker;
 import com.example.HRMS.demo.worker.repository.WorkerRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -25,6 +29,7 @@ import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.YearMonth;
 import java.util.List;
 
@@ -167,6 +172,59 @@ public class AttendanceService {
     public List<ActiveWorkerCache> getActiveWorkers() {
 
         return activeWorkerCacheService.getAllActiveWorkers();
+    }
+
+    public PagedResponse<AttendanceLogResponse> getAttendanceLogs(
+            Long workerId,
+            LocalDate from,
+            LocalDate to,
+            int page,
+            int size
+    ) {
+
+        PageRequest pageable =
+                PageRequest.of(page, size);
+
+        Page<AttendanceLog> attendancePage =
+                attendanceRepository
+                        .findAttendanceLogs(
+                                workerId,
+                                from.atStartOfDay(),
+                                to.atTime(LocalTime.MAX),
+                                pageable
+                        );
+
+        List<AttendanceLogResponse> content =
+                attendancePage.getContent()
+                        .stream()
+                        .map(this::mapToResponse)
+                        .toList();
+
+        return PagedResponse.<AttendanceLogResponse>builder()
+                .content(content)
+                .totalElements(attendancePage.getTotalElements())
+                .totalPages(attendancePage.getTotalPages())
+                .currentPage(attendancePage.getNumber())
+                .size(attendancePage.getSize())
+                .build();
+    }
+
+    private AttendanceLogResponse mapToResponse(
+            AttendanceLog attendance
+    ) {
+
+        return AttendanceLogResponse.builder()
+                .attendanceId(attendance.getId())
+                .workerId(attendance.getWorker().getId())
+                .workerName(attendance.getWorker().getName())
+                .siteId(attendance.getSite().getId())
+                .siteName(attendance.getSite().getSiteName())
+                .clockIn(attendance.getClockIn())
+                .clockOut(attendance.getClockOut())
+                .totalHours(attendance.getTotalHours())
+                .overtimeHours(attendance.getOvertimeHours())
+                .flagged(attendance.getFlagged())
+                .build();
     }
 
     private void processOvertime(
