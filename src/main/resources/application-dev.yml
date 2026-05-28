@@ -7,22 +7,27 @@ spring:
   jpa:
     show-sql: true
 
-  redis:
-    host: localhost
-    port: 6379
-    timeout: 2s
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2s
+      connect-timeout: 2s
 
-  flyway:
-    enabled: true
+    flyway:
+      enabled: true
 
-logging:
-  level:
-    org:
-      hibernate:
-        SQL: DEBUG
-        orm:
-          jdbc:
-            bind: TRACE
+  logging:
+    level:
+      org:
+        hibernate:
+          SQL: DEBUG
+          orm:
+            jdbc:
+              bind: TRACE
+
+      io:
+        lettuce:
+          core: ERROR
 
 app:
   cors:
