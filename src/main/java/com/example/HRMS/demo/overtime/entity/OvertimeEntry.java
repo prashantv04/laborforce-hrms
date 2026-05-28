@@ -2,7 +2,6 @@ package com.example.HRMS.demo.overtime.entity;
 
 import com.example.HRMS.demo.attendance.entity.AttendanceLog;
 import com.example.HRMS.demo.common.util.BaseEntity;
-//import com.example.HRMS.demo.worker.entity.SettlementStatus;
 import com.example.HRMS.demo.overtime.entity.SettlementStatus;
 import com.example.HRMS.demo.worker.entity.Worker;
 import jakarta.persistence.*;

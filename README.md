@@ -89,7 +89,7 @@ common/
 
 ```bash
 git clone <YOUR_GITHUB_REPO_URL>
-cd construction-hrms
+cd laborforce-hrms
 ```
 
 ---
