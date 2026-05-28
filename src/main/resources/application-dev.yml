@@ -4,30 +4,40 @@ spring:
     username: postgres
     password: postgres
 
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 30000
+      # Keep below Supabase idle timeout
+      max-lifetime: 240000
+      keepalive-time: 120000
+      connection-timeout: 2000
+      validation-timeout: 1000
+
   jpa:
     show-sql: true
 
-    redis:
-      host: localhost
-      port: 6379
-      timeout: 2s
-      connect-timeout: 2s
+  redis:
+    host: localhost
+    port: 6379
+    timeout: 2s
+    connect-timeout: 2s
 
-    flyway:
-      enabled: true
+  flyway:
+    enabled: true
 
-  logging:
-    level:
-      org:
-        hibernate:
-          SQL: DEBUG
-          orm:
-            jdbc:
-              bind: TRACE
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: DEBUG
+        orm:
+          jdbc:
+            bind: TRACE
 
-      io:
-        lettuce:
-          core: ERROR
+    io:
+      lettuce:
+        core: ERROR
 
 app:
   cors:

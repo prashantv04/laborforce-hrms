@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://aws-0-ap-south-1.pooler.supabase.com:6543/postgres
+    username: YOUR_SUPABASE_USER
+    password: YOUR_SUPABASE_PASSWORD
+
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      max-lifetime: 240000
+      keepalive-time: 120000
+      connection-timeout: 30000
+      validation-timeout: 5000
+
+  jpa:
+    show-sql: false
+
+logging:
+  level:
+    root: INFO

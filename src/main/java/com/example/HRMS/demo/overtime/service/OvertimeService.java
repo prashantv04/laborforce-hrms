@@ -1,6 +1,7 @@
 package com.example.HRMS.demo.overtime.service;
 
 import com.example.HRMS.demo.common.exception.ResourceNotFoundException;
+import com.example.HRMS.demo.common.util.WageApiClient;
 import com.example.HRMS.demo.events.OvertimeSettlementCompletedEvent;
 import com.example.HRMS.demo.overtime.dto.OvertimeEntryResponse;
 import com.example.HRMS.demo.overtime.dto.OvertimeSummaryResponse;
@@ -11,6 +12,7 @@ import com.example.HRMS.demo.overtime.repository.OvertimeRepository;
 import com.example.HRMS.demo.worker.entity.Worker;
 import com.example.HRMS.demo.worker.repository.WorkerRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +22,7 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OvertimeService {
@@ -30,10 +33,19 @@ public class OvertimeService {
 
     private final ApplicationEventPublisher eventPublisher;
 
+    private final WageApiClient wageApiClient;
+
     public OvertimeSummaryResponse getMonthlySummary(
             Long workerId,
             String month
     ) {
+
+        String wageRates =
+                wageApiClient.fetchLatestWageRates();
+        log.info(
+                "Using wage data: {}",
+                wageRates
+        );
 
         Worker worker =
                 workerRepository.findById(workerId)
