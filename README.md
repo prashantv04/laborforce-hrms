@@ -373,7 +373,7 @@ All code was reviewed, modified, and tested manually.
 Postman collection included in repository:
 
 ```text
-construction-hrms.postman_collection.json
+laborforce-hrms.postman_collection.json
 ```
 
 ---
