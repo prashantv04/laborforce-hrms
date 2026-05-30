@@ -1,4 +1,4 @@
-# Construction Workforce HRMS Backend
+# Labor Workforce HRMS Backend
 
 Backend system for workforce attendance, overtime tracking, and payroll settlement designed for construction industry operations.
 
