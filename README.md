@@ -1,8 +1,8 @@
 # Labor Workforce HRMS Backend
 
-Backend system for workforce attendance, overtime tracking, and payroll settlement designed for construction industry operations.
+Backend system for workforce attendance, overtime tracking, payroll settlement, and active workforce monitoring designed for labor-intensive construction and field operations.
 
-Built using Java + Spring Boot with PostgreSQL, Redis caching, Flyway migrations, and production-oriented backend design principles.
+This project was completed as part of a Java Backend Developer hiring assignment and focuses on production-grade backend engineering practices including transactional integrity, ORM optimization, Redis resilience, caching strategies, connection pool tuning, and business-rule enforcement.
 
 ---
 
@@ -53,13 +53,65 @@ Built using Java + Spring Boot with PostgreSQL, Redis caching, Flyway migrations
 
 ---
 
+# Project Origin
+
+This solution was built from a Spring Initializr starter project and was not forked from an existing HRMS repository.
+
+Reason:
+
+The assignment focused on backend architecture and business-rule implementation, so I chose to design the domain model and workflows from scratch rather than adapt an existing codebase.
+
+# Assignment Coverage
+
+## Workforce Attendance & Overtime Engine
+
+### Schema Design
+
+Implemented:
+
+- Worker
+- Site
+- AttendanceLog
+- OvertimeEntry
+
+### Attendance APIs
+
+- POST /api/attendance/clock-in
+- POST /api/attendance/clock-out
+- GET /api/attendance/active
+- GET /api/attendance/log
+
+### Overtime APIs
+
+- GET /api/overtime/summary/{workerId}
+- POST /api/overtime/settle/{workerId}
+
+### Redis Features
+
+- Active worker cache
+- Redis-only active worker endpoint
+- 16-hour TTL safety net
+- Cache invalidation support
+- Graceful degradation when Redis is unavailable
+
+### Business Rules
+
+- No duplicate clock-in
+- Worker/site active validation
+- Future timestamp validation
+- 16-hour shift flagging
+- 60-hour monthly overtime cap
+- Atomic settlement processing
+
+---
+
 # Architecture Overview
 
 The system follows a layered backend architecture:
 
 Controller → Service → Repository → PostgreSQL
 
-Redis is used as a high-speed cache layer for active workers currently clocked in at construction sites.
+Redis is used as a high-speed cache layer for active workers currently clocked in at labor sites.
 
 Overtime settlement uses event-driven processing with `@TransactionalEventListener(AFTER_COMMIT)` to ensure notifications are only triggered after successful database commits.
 
@@ -275,6 +327,39 @@ Rules:
 
 ---
 
+---
+
+# Curl Examples
+
+```bash
+curl -X POST http://localhost:8080/api/attendance/clock-in \
+-H "Content-Type: application/json" \
+-d '{"workerId":1,"siteId":1}'
+```
+
+```bash
+curl -X POST http://localhost:8080/api/attendance/clock-out \
+-H "Content-Type: application/json" \
+-d '{"workerId":1}'
+```
+
+```bash
+curl http://localhost:8080/api/attendance/active
+```
+
+```bash
+curl "http://localhost:8080/api/attendance/log?workerId=1&from=2026-05-01&to=2026-05-31&page=0&size=20"
+```
+
+```bash
+curl "http://localhost:8080/api/overtime/summary/1?month=2026-05"
+```
+
+```bash
+curl -X POST "http://localhost:8080/api/overtime/settle/1?month=2026-04"
+```
+---
+
 # Business Rules
 
 ## Clock-In Rules
@@ -305,6 +390,23 @@ Rules:
 
 ---
 
+# Testing Performed
+
+Verified scenarios:
+
+- Successful worker clock-in
+- Duplicate clock-in prevention
+- Successful worker clock-out
+- Overtime calculation above 8 hours
+- Monthly overtime cap enforcement (60 hours)
+- Current-month settlement rejection
+- Successful historical-month settlement
+- Atomic settlement processing
+- Active worker cache updates
+- Redis unavailable startup behavior
+- Attendance history pagination
+- N+1 query optimization verification using Hibernate SQL logs
+
 # Production Tickets Solved
 
 ## LF-201
@@ -326,6 +428,65 @@ Implemented atomic overtime settlement with `@TransactionalEventListener(AFTER_C
 ## LF-205
 
 Optimized HikariCP settings and moved external API calls outside transactional boundaries.
+
+---
+
+# Assignment Ticket Mapping
+
+| Ticket | Description | Status |
+|----------|-------------|---------|
+| LF-201 | CORS Configuration | Completed |
+| LF-202 | Redis Resilience | Completed |
+| LF-203 | Pagination & N+1 Fix | Completed |
+| LF-204 | Atomic Settlement Transactions | Completed |
+| LF-205 | Connection Pool Optimization | Completed |
+
+---
+
+# Database Schema Overview
+
+## Worker
+
+| Column | Description |
+|----------|-------------|
+| id | Primary Key |
+| name | Worker Name |
+| phone | Contact Number |
+| designation | Worker Designation |
+| daily_wage_rate | Daily Wage |
+| active | Active Status |
+
+## Site
+
+| Column | Description |
+|----------|-------------|
+| id | Primary Key |
+| site_name | Site Name |
+| location | Site Location |
+| active | Active Status |
+
+## AttendanceLog
+
+| Column | Description |
+|----------|-------------|
+| worker_id | Worker Reference |
+| site_id | Site Reference |
+| clock_in | Shift Start |
+| clock_out | Shift End |
+| total_hours | Worked Hours |
+| overtime_hours | Calculated Overtime |
+| flagged | Review Flag |
+
+## OvertimeEntry
+
+| Column | Description |
+|----------|-------------|
+| worker_id | Worker Reference |
+| attendance_id | Attendance Reference |
+| overtime_date | Overtime Date |
+| overtime_hours | Overtime Hours |
+| amount | Payout Amount |
+| settlement_status | Pending / Settled |
 
 ---
 
@@ -353,16 +514,16 @@ Prevents N+1 query problems when loading attendance history with Worker and Site
 
 * ChatGPT
 
-    * architecture guidance
-    * transaction design
-    * Redis resilience patterns
-    * HikariCP tuning guidance
+  * architecture guidance
+  * transaction design
+  * Redis resilience patterns
+  * HikariCP tuning guidance
 
 * GitHub Copilot
 
-    * boilerplate generation
-    * DTO scaffolding
-    * repository method suggestions
+  * boilerplate generation
+  * DTO scaffolding
+  * repository method suggestions
 
 All code was reviewed, modified, and tested manually.
 
@@ -390,6 +551,27 @@ laborforce-hrms.postman_collection.json
 
 ---
 
-# Author
+# What I Would Improve With More Time
 
-Backend Developer Assignment (2026)
+- JWT-based authentication and authorization
+- Role-based access control for supervisors and payroll operators
+- SMS retry queue using Redis Streams or RabbitMQ
+- Audit trail for settlement operations
+- Distributed locking for high-volume attendance processing
+- Prometheus and Grafana monitoring
+- Integration testing using Testcontainers
+- Kubernetes deployment manifests
+
+# Lessons Learned
+
+- Cache should improve performance but never become a system dependency.
+- Notifications should never occur before transaction commits.
+- Pagination alone does not solve N+1 query problems.
+- Database transactions should not contain slow external network calls.
+- Payroll systems prioritize correctness over convenience.
+- Business rules belong in both application and persistence layers.
+
+---
+
+# Author
+Java Backend Developer Assignment Submission (2026)
